@@ -7,6 +7,7 @@ import com.ermproject.ERP.repository.UsuarioRepository;
 import com.ermproject.ERP.service.exceptions.DatabaseException;
 import com.ermproject.ERP.service.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -37,12 +38,14 @@ public class UsuarioService {
 
     }
 
+    @Transactional
     public Usuario insert(UsuarioInsertDTO dto) {
         Usuario user = fromInsertDTO(dto);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         return repository.save(user);
     }
 
+    @Transactional
     public void delete(Long id) {
         try {
         repository.deleteById(id);
@@ -53,6 +56,7 @@ public class UsuarioService {
         }
     }
 
+    @Transactional
     public Usuario update(Long id, UsuarioUpdateDTO usuario) {
         try {
         Usuario us = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));

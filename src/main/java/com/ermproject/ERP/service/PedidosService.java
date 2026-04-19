@@ -1,13 +1,17 @@
 package com.ermproject.ERP.service;
 
+import com.ermproject.ERP.DTO.pedidos.PedidoItemDTO;
 import com.ermproject.ERP.DTO.pedidos.PedidosInsertDTO;
 import com.ermproject.ERP.DTO.pedidos.PedidosUpdateDTO;
+import com.ermproject.ERP.entities.PedidoItem;
 import com.ermproject.ERP.entities.Pedidos;
+import com.ermproject.ERP.entities.Produto;
 import com.ermproject.ERP.entities.Usuario;
 import com.ermproject.ERP.repository.PedidosRepository;
 import com.ermproject.ERP.repository.UsuarioRepository;
 import com.ermproject.ERP.service.exceptions.DatabaseException;
 import com.ermproject.ERP.service.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -26,6 +30,12 @@ public class PedidosService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private EstoqueService estoqueService;
+
+    @Autowired
+    private ProdutoService produtoService;
+
 
     public List<Pedidos> findAll() {
         List<Pedidos> list = repository.findAll();
@@ -37,11 +47,28 @@ public class PedidosService {
         return pedido.orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
+    @Transactional
     public Pedidos insert(PedidosInsertDTO dto) {
-        Pedidos p = fromInsertDTO(dto);
-        return repository.save(p);
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException(dto.getUsuarioId()));
+
+
+        Pedidos pedido = new Pedidos();
+        pedido.setUsuario(usuario);
+
+        for (PedidoItemDTO itemDTO : dto.getItems()) {
+
+            Produto produto = produtoService.findById(itemDTO.getProdutoId());
+            estoqueService.decrementarEstoque(produto.getId(), itemDTO.getQuantity());
+
+            PedidoItem item = new PedidoItem(pedido, produto, itemDTO.getQuantity(), produto.getPrice());
+            pedido.getItems().add(item);
+        }
+
+        return repository.save(pedido);
     }
 
+    @Transactional
     public Pedidos update(Long id, PedidosUpdateDTO dto) {
         Pedidos entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
 
@@ -51,6 +78,7 @@ public class PedidosService {
         throw new IllegalStateException("Pedido não pode ser alterado.");
     }
 
+    @Transactional
     public void delete (Long id) {
 
         try {

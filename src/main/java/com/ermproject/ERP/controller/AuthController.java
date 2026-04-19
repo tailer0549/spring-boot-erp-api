@@ -6,6 +6,7 @@ import com.ermproject.ERP.DTO.usuario.UsuarioInsertDTO;
 import com.ermproject.ERP.service.JWTService;
 import com.ermproject.ERP.service.LoginService;
 import com.ermproject.ERP.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,17 +22,17 @@ public class AuthController {
     private UsuarioService usuarioService;
 
     @Autowired
-    LoginService service;
+    LoginService loginservice;
 
     @PostMapping(value = "/login")
     public ResponseEntity<String> login(@RequestBody LoginDTO dto) {
         // Validando no banco
-            String token = service.login(dto);
+            String token = loginservice.login(dto);
             return ResponseEntity.ok(token);
     }
 
     @PostMapping(value = "/{register}")
-    public ResponseEntity<Void> register(@RequestBody UsuarioInsertDTO dto) {
+    public ResponseEntity<Void> register(@Valid @RequestBody UsuarioInsertDTO dto) {
         usuarioService.insert(dto);
         return ResponseEntity.ok().build();
     }

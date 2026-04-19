@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/estoque")
@@ -37,5 +38,12 @@ public class EstoqueController {
     public ResponseEntity<EstoqueDTO> update(@PathVariable Long id, @Valid @RequestBody EstoqueUpdateDTO dto) {
         Estoque entity = service.update(id, dto);
         return ResponseEntity.ok().body(new EstoqueDTO(entity));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EstoqueDTO>> findAll() {
+        List<Estoque> estoque = service.findAll();
+        List<EstoqueDTO> estoqueDTO = estoque.stream().map(EstoqueDTO::new).toList();
+        return ResponseEntity.ok().body(estoqueDTO);
     }
 }
