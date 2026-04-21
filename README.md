@@ -16,7 +16,6 @@ A aplicação simula um ERP simples, com operações de cadastro, autenticação
 - Spring Security
 - JWT (JSON Web Token)
 - Hibernate
-- H2 Database
 - Maven
 
 ## Funcionalidades
